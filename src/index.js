@@ -80,15 +80,42 @@ export class VerifyPdf {
     const validContentDigest = dataDigest.toString("binary") === attrDigest;
     if (validContentDigest) {
       const greenText = "\x1b[32m%s\x1b[0m";
-      console.log(greenText, "Signature is valid!!!");
+      console.log(greenText, "Digital Signature is valid and the PDF Content is not Tampered!!!");
     } else {
       throw new Error("Wrong content digest");
     }
+  }
+
+  reason(pdf) {
+    let reasonPos = pdf.lastIndexOf("/Reason (");
+    if (reasonPos === -1) reasonPos = pdf.lastIndexOf("/Reason(");
+
+    const reasonEnd = pdf.indexOf(")", reasonPos);
+    const reason = pdf.slice(reasonPos + 9, reasonEnd).toString();
+    console.log("Alasan tanda tangan: ", reason)
+     
+  }
+
+  date(pdf) {
+    let datePos = pdf.lastIndexOf("/M (D:");
+    if (datePos === -1) reasonPos = pdf.lastIndexOf("/M(D:");
+
+    const dateEnd = pdf.indexOf(")", datePos);
+    const year = pdf.slice(datePos + 6, datePos+10).toString();
+    const month = pdf.slice(datePos + 10, datePos+12).toString();
+    const day = pdf.slice(datePos + 12, datePos+14).toString();
+    const hour = pdf.slice(datePos + 14, datePos+16).toString();
+    const minute = pdf.slice(datePos + 16, datePos+18).toString();
+    const second = pdf.slice(datePos + 18, datePos+20).toString();
+    console.log("Timestamp: ", day, month, year,"pukul", hour,":",minute,":",second)
   }
 }
 
 function main() {
   const sign = new VerifyPdf();
-  sign.verify(fs.readFileSync("./g2.pdf"));
+  const signedPdfBuffer = fs.readFileSync("./ta2.pdf");
+  sign.verify(signedPdfBuffer);
+  sign.reason(signedPdfBuffer);
+  sign.date(signedPdfBuffer)
 }
 main();
